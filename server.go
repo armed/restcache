@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/armed/restcache/cache"
 	"github.com/gorilla/mux"
@@ -13,9 +14,13 @@ const (
 	defaultDuration = "1h"
 )
 
-var instance cache.Cache
+var (
+	instance cache.Cache
+	port     = flag.Uint("port", 8080, "http port to listen")
+)
 
 func main() {
+	flag.Parse()
 	instance = cache.New(defaultDuration)
 
 	r := mux.NewRouter()
@@ -32,7 +37,11 @@ func main() {
 		Methods("GET")
 
 	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
+
+	log.Printf("Server started at port: %d", *port)
+
+	host := fmt.Sprintf(":%d", *port)
+	log.Fatal(http.ListenAndServe(host, nil))
 }
 
 func putData(w http.ResponseWriter, r *http.Request) {
